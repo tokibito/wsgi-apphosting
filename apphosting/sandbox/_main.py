@@ -2,7 +2,7 @@
 #アプリケーションのランナー
 import sys
 
-import _utils
+from apphosting.sandbox import _utils
 
 class Runner(object):
     """

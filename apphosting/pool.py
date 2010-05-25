@@ -2,7 +2,9 @@
 #sandboxのプロセス管理
 from multiprocessing import Process, Pipe
 
-from sandbox._main import Runner
+from apphosting.sandbox._main import Runner
+
+RUNNER_SIGNAL_KILL = 1
 
 class Pool(object):
     def __init__(self):
@@ -33,5 +35,12 @@ class Pool(object):
         ランナーを解放
         """
         runner = self._runners[name]
-        runner._pool_conn.send({'RUNNER_SIGNAL': 1})  # 停止信号送信
+        runner._pool_conn.send({'RUNNER_SIGNAL': RUNNER_SIGNAL_KILL})  # 停止信号送信
         del self._runners[name]
+
+    def delete_all_runner(self):
+        """
+        ランナーをすべて解放
+        """
+        for name in self._runners.keys():
+            self.delete_runner(name)
