@@ -1,14 +1,18 @@
 #coding:utf-8
+import os
 from unittest import TestCase
 
 from apphosting.pool import Pool
 
-SAMPLEAPP = 'tests.simpleapp.main'
-SAMPLEAPP2 = 'tests.simpleapp2.main'
+SAMPLEAPP = 'simpleapp.main'
+SAMPLEAPP2 = 'simpleapp2.main'
+SAMPLEAPP3 = 'simpleapp3.main'
 
 class SampleAppTestCase(TestCase):
     def setUp(self):
-        self.pool = Pool()
+        self.pool = Pool('apphosting.sandbox.providers.filesystem', {
+            'APPDIR': os.path.dirname(__file__),
+        })
 
     def tearDown(self):
         self.pool.delete_all_runner()
@@ -22,49 +26,65 @@ class SampleAppTestCase(TestCase):
             'wsgi.url_scheme': 'http',
         }
 
-    def test_pool(self):
+    def test_runwsgiapp(self):
         """
-        Poolの複数回リクエスト
+        シンプルなWSGIアプリケーションのテスト
         """
-        self.pool.create_runner(SAMPLEAPP)
         start_info = {}
         def _start_response(status, headers, exc_info=None):
             start_info['status'] = status
             start_info['headers'] = headers
         for i in range(3):
             resp = self.pool.process(SAMPLEAPP, {}, _start_response)
-            self.assertEqual('200 OK', start_info['status'])
-            self.assertEqual('It works!\r\n', resp)
+            self.assertEqual(start_info['status'], '200 OK')
+            self.assertEqual(resp, 'It works!\r\n')
 
     def test_flaskapp(self):
         """
         Flaskアプリケーションのテスト
         """
-        self.pool.create_runner(SAMPLEAPP2)
         start_info = {}
         def _start_response(status, headers, exc_info=None):
             start_info['status'] = status
             start_info['headers'] = headers
         for i in range(3):
             resp = self.pool.process(SAMPLEAPP2, self.get_environ(), _start_response)
-            self.assertEqual('200 OK', start_info['status'])
-            self.assertEqual('Hello Flask!', resp)
+            self.assertEqual(start_info['status'], '200 OK')
+            self.assertEqual(resp, 'Hello Flask!')
+
+    def test_djangoapp(self):
+        """
+        Djangoアプリケーションのテスト
+        """
+        start_info = {}
+        def _start_response(status, headers, exc_info=None):
+            start_info['status'] = status
+            start_info['headers'] = headers
+        for i in range(3):
+            resp = self.pool.process(SAMPLEAPP3, self.get_environ(), _start_response)
+            self.assertEqual(start_info['status'], '200 OK')
+            self.assertEqual(resp, 'Hello Django!')
 
     def test_multihost(self):
         """
         複数アプリケーションのホスト
         """
-        self.pool.create_runner(SAMPLEAPP)
-        self.pool.create_runner(SAMPLEAPP2)
         start_info = {}
         def _start_response(status, headers, exc_info=None):
             start_info['status'] = status
             start_info['headers'] = headers
         for i in range(3):
             resp = self.pool.process(SAMPLEAPP, {}, _start_response)
-            self.assertEqual('200 OK', start_info['status'])
-            self.assertEqual('It works!\r\n', resp)
-        for i in range(3):
+            self.assertEqual(start_info['status'], '200 OK')
+            self.assertEqual(resp, 'It works!\r\n')
+        for i in range(4):
             resp = self.pool.process(SAMPLEAPP2, self.get_environ(), _start_response)
-            self.assertEqual('200 OK', start_info['status'])
-            self.assertEqual('Hello Flask!', resp)
+            self.assertEqual(start_info['status'], '200 OK')
+            self.assertEqual(resp, 'Hello Flask!')
+        for i in range(5):
+            resp = self.pool.process(SAMPLEAPP3, self.get_environ(), _start_response)
+            self.assertEqual(start_info['status'], '200 OK')
+            self.assertEqual(resp, 'Hello Django!')
+        self.assertEqual(self.pool.process_info(SAMPLEAPP)['processed'], 3)
+        self.assertEqual(self.pool.process_info(SAMPLEAPP2)['processed'], 4)
+        self.assertEqual(self.pool.process_info(SAMPLEAPP3)['processed'], 5)

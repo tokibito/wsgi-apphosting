@@ -1,35 +1,57 @@
 #coding:utf-8
 #アプリケーションのランナー
 import sys
+from datetime import datetime
 
-from apphosting.sandbox import _utils
+from apphosting.sandbox import utils
+from apphosting.sandbox import const
 
 class Runner(object):
     """
     ランナーはプロセスプールで保持される
     1プロセス1ランナー
     TODO:複数のプロセスで同じランナーが起動する可能性
+    providerはアプリケーション提供モジュール
     """
-    def __init__(self, name, pool_conn, runner_conn):
-        self._application = getattr(_utils.import_module(name), 'application')
+
+    def __init__(self, name, provider, server_config, pool_conn, runner_conn):
+        self.provider = utils.import_module(provider)
+        self._server_config = server_config
+        self._application = self.provider.get_application(name, self._server_config)
         self._pool_conn = pool_conn
         self._runner_conn = runner_conn
         self.proc = None
         self.suspended = False
+        self.ctime = datetime.now()
+        self.utime = None
+        self.processed = 0
 
     def __call__(self):
         while not self.suspended:
             # environパラメータを待ちうけ
             environ = self._runner_conn.recv()
-            # 停止信号
-            if environ.get('RUNNER_SIGNAL') == 1:
+            signal = environ.get('RUNNER_SIGNAL')
+            # 停止
+            if signal == const.RUNNER_SIGNAL_KILL:
                 self.suspended = True
+                continue
+            # 情報取得
+            elif signal == const.RUNNER_SIGNAL_INFO:
+                self._runner_conn.send({
+                    'ctime': self.ctime,
+                    'utime': self.utime,
+                    'processed': self.processed
+                })
                 continue
             # アプリケーションを実行
             status, headers, resp = self.main(environ)
             # start_resopnseの結果を返す
             self._runner_conn.send([status, headers])
             self._runner_conn.send(resp)
+            # 実行回数カウント
+            self.processed += 1
+            # 最後に実行した時間
+            self.utime = datetime.now()
         # サスペンドされた場合パイプを閉じる
         self._runner_conn.close()
         sys.exit(0)
