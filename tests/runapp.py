@@ -8,6 +8,8 @@ SAMPLEAPP = 'simpleapp.main'
 SAMPLEAPP2 = 'simpleapp2.main'
 SAMPLEAPP3 = 'simpleapp3.main'
 
+__all__ = ('SampleAppTestCase',)
+
 class SampleAppTestCase(TestCase):
     def setUp(self):
         self.pool = Pool('apphosting.sandbox.providers.filesystem', {

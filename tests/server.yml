@@ -1,0 +1,6 @@
+provider:
+  appdir: %(CONFIG_DIR)s
+
+foo:
+  bar: 12345
+  fizz_buzz: test
