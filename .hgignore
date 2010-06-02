@@ -1,6 +1,8 @@
 syntax: glob
 *.pyc
 *.swp
+*.orig
 
 syntax: regexp
 ^docs/_build/
+^wsgi_apphosting.egg-info/
