@@ -3,8 +3,8 @@
 import sys
 from datetime import datetime
 
+from apphosting import const
 from apphosting.sandbox import utils
-from apphosting.sandbox import const
 
 class Runner(object):
     """

@@ -3,7 +3,7 @@
 import os
 from unittest import TestCase
 
-from apphosting.config import Config
+from apphosting.config import FileConfig
 
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -11,7 +11,7 @@ __all__ = ('ConfigTestCase',)
 
 class ConfigTestCase(TestCase):
     def setUp(self):
-        self.config = Config(os.path.join(BASEDIR, 'server.yml'))
+        self.config = FileConfig(os.path.join(BASEDIR, 'server.yml'))
 
     def test_get(self):
         self.assertEqual(BASEDIR, self.config.get('provider_appdir'))

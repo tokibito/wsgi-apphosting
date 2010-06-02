@@ -1,22 +1,27 @@
 #coding:utf-8
 #sandboxのプロセス管理
+import logging
 from multiprocessing import Process, Pipe
 
-from apphosting.sandbox import const
+from apphosting import const
+from apphosting.config import Config
 from apphosting.sandbox.main import Runner
 
 class RunnerDoesNotExist(Exception):
     pass
 
 class Pool(object):
-    def __init__(self, provider, server_config=None, auto_create=True):
+    def __init__(self, provider, server_config=None, auto_create=True, *args, **kwargs):
         """
         providerはアプリケーション提供モジュール
         """
         self._runners = {}
-        self._server_config = server_config or {}
+        self.server_config = Config(const.DEFAULT_CONFIG)
+        if not server_config is None:
+            self.server_config.update(server_config)
         self.auto_create = auto_create
         self.provider = provider
+        self.max_runners = kwargs.get('max_runners') or self.server_config.get('app_max_runners')
 
     def process(self, name, environ, start_response):
         conn = self.get_runner(name, self.auto_create)._pool_conn
@@ -53,8 +58,12 @@ class Pool(object):
         """
         新規ランナーを作成
         """
+        # 最大数を超えている場合は一番古いものを終了する
+        while len(self._runners) >= self.max_runners:
+            old_runner_name = sorted(self._runners.items(), key=lambda v: v[1].ctime)[0][0]
+            self.delete_runner(old_runner_name)
         pool_conn, runner_conn = Pipe()
-        self._runners[name] = Runner(name, self.provider, self._server_config, pool_conn, runner_conn)
+        self._runners[name] = Runner(name, self.provider, self.server_config, pool_conn, runner_conn)
         self._runners[name].proc = Process(target=self._runners[name])
         self._runners[name].proc.start()
 
@@ -65,6 +74,7 @@ class Pool(object):
         runner = self._runners[name]
         runner._pool_conn.send({'RUNNER_SIGNAL': const.RUNNER_SIGNAL_KILL})  # 停止信号送信
         del self._runners[name]
+        logging.info('deleted runner => "%s"' % name)
 
     def delete_all_runner(self):
         """

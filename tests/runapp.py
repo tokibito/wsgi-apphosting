@@ -3,6 +3,7 @@ import os
 from unittest import TestCase
 
 from apphosting.pool import Pool
+from apphosting.config import Config
 
 SAMPLEAPP = 'simpleapp.main'
 SAMPLEAPP2 = 'simpleapp2.main'
@@ -12,9 +13,9 @@ __all__ = ('SampleAppTestCase',)
 
 class SampleAppTestCase(TestCase):
     def setUp(self):
-        self.pool = Pool('apphosting.sandbox.providers.filesystem', {
-            'APPDIR': os.path.dirname(__file__),
-        })
+        self.pool = Pool('apphosting.sandbox.providers.filesystem', Config({
+            'app_dir': os.path.dirname(__file__),
+        }))
 
     def tearDown(self):
         self.pool.delete_all_runner()
