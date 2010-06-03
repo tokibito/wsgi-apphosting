@@ -4,6 +4,7 @@ import unittest
 
 from tests.runapp import *
 from tests.config import *
+from tests.router import *
 
 if __name__ == '__main__':
     BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../'))
