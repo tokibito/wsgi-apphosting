@@ -11,6 +11,8 @@ class RunnerDoesNotExist(Exception):
     pass
 
 class Pool(object):
+    runner_class = Runner
+
     def __init__(self, provider, server_config=None, auto_create=True, *args, **kwargs):
         """
         providerはアプリケーション提供モジュール
@@ -63,7 +65,7 @@ class Pool(object):
             old_runner_name = sorted(self._runners.items(), key=lambda v: v[1].ctime)[0][0]
             self.delete_runner(old_runner_name)
         pool_conn, runner_conn = Pipe()
-        self._runners[name] = Runner(name, self.provider, self.server_config, pool_conn, runner_conn)
+        self._runners[name] = self.runner_class(name, self.provider, self.server_config, pool_conn, runner_conn)
         self._runners[name].proc = Process(target=self._runners[name])
         self._runners[name].proc.start()
 
