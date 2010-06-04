@@ -38,10 +38,11 @@ class ConfigLoadError(Exception):
     pass
 
 class FileConfig(Config):
-    def __init__(self, path):
+    def __init__(self, path, parse_dic=None):
         if not os.path.exists(path):
             raise ConfigLoadError(path)
         self.path = path
+        self.parse_dic = parse_dic or {}
         fin = open(path, 'r')
         self.body = fin.read()
         fin.close()
@@ -52,7 +53,9 @@ class FileConfig(Config):
         """
         ファイルから読み込んだテキストのキーワードを変換する
         """
-        kwargs = {
+        kwargs = {}
+        kwargs.update(self.parse_dic)
+        kwargs.update({
             'CONFIG_DIR': os.path.dirname(os.path.abspath(self.path)),
-        }
+        })
         return body % kwargs

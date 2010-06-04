@@ -3,3 +3,6 @@ pool:
 
 provider:
   appdir: %(CONFIG_DIR)s
+
+router:
+  domain: example.com

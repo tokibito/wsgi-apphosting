@@ -5,9 +5,9 @@ from unittest import TestCase
 from apphosting.pool import Pool
 from apphosting.config import Config
 
-SAMPLEAPP = 'simpleapp.main'
-SAMPLEAPP2 = 'simpleapp2.main'
-SAMPLEAPP3 = 'simpleapp3.main'
+SAMPLEAPP = 'simpleapp'
+SAMPLEAPP2 = 'simpleapp2'
+SAMPLEAPP3 = 'simpleapp3'
 
 __all__ = ('SampleAppTestCase',)
 

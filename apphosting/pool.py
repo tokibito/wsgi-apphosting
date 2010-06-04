@@ -12,6 +12,7 @@ class RunnerDoesNotExist(Exception):
 
 class Pool(object):
     runner_class = Runner
+    default_max_runners = 5
 
     def __init__(self, provider, server_config=None, auto_create=True, *args, **kwargs):
         """
@@ -23,7 +24,9 @@ class Pool(object):
             self.server_config.update(server_config)
         self.auto_create = auto_create
         self.provider = provider
-        self.max_runners = kwargs.get('max_runners') or self.server_config.get('app_max_runners')
+        self.max_runners = kwargs.get('max_runners') \
+            or self.server_config.get('app_max_runners') \
+            or self.default_max_runners
 
     def process(self, name, environ, start_response):
         conn = self.get_runner(name, self.auto_create)._pool_conn
@@ -65,7 +68,13 @@ class Pool(object):
             old_runner_name = sorted(self._runners.items(), key=lambda v: v[1].ctime)[0][0]
             self.delete_runner(old_runner_name)
         pool_conn, runner_conn = Pipe()
-        self._runners[name] = self.runner_class(name, self.provider, self.server_config, pool_conn, runner_conn)
+        self._runners[name] = self.runner_class(
+            name,
+            self.provider,
+            self.server_config,
+            pool_conn,
+            runner_conn
+        )
         self._runners[name].proc = Process(target=self._runners[name])
         self._runners[name].proc.start()
 
