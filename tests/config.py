@@ -11,7 +11,7 @@ __all__ = ('ConfigTestCase',)
 
 class ConfigTestCase(TestCase):
     def setUp(self):
-        self.config = FileConfig(os.path.join(BASEDIR, 'server.yml'))
+        self.config = FileConfig(os.path.join(BASEDIR, 'test.yaml'))
 
     def test_get(self):
         self.assertEqual(BASEDIR, self.config.get('provider_appdir'))

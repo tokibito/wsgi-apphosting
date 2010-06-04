@@ -1,0 +1,2 @@
+application:
+  entry_point: %(app_name).main

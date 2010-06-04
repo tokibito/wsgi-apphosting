@@ -1,0 +1,5 @@
+pool:
+  max_runners: 5
+
+provider:
+  appdir: %(CONFIG_DIR)s
