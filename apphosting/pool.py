@@ -35,7 +35,8 @@ class Pool(object):
         # environをランナーへ渡す
         conn.send(environ)
         # 結果を待ちうける
-        start_response(*conn.recv())
+        args = conn.recv()
+        start_response(*args)
         return conn.recv()
 
     def process_info(self, name):

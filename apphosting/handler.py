@@ -12,7 +12,7 @@ class NotFoundApplication(object):
 
     def __call__(self, environ, start_response):
         start_response('404 Not Found', [('Content-type', 'text/html')])
-        return self.page
+        return [self.page]
 
 class Handler(object):
     pool_class = Pool
@@ -31,11 +31,30 @@ class Handler(object):
         )
 
     def __call__(self, environ, start_response):
+        # wsgi.input/wsgi.errors はcStringIOのオブジェクトの可能性があるので
+        # pickle化できるようにStringIOにする
+        from StringIO import StringIO
+        original_wsgi_errors = environ.get('wsgi.errors')
+        environ['wsgi.errors'] = StringIO()
+        try:
+            content_length = int(environ.get('CONTENT_LENGTH', 0))
+        except (ValueError, TypeError):
+            content_length = 0
+        original_wsgi_input = environ.get('wsgi.input')
+        if original_wsgi_input and content_length > 0:
+            environ['wsgi.input'] = StringIO(original_wsgi_input.read())
+        else:
+            environ['wsgi.input'] = StringIO()
+
         app_name = self.get_app_name(environ)
         if not app_name or not self.pool.has_application(app_name):
             return self.handler404(environ, start_response)
         response = self.pool.process(app_name, environ, start_response)
-        return response
+
+        if original_wsgi_errors:
+            original_wsgi_errors.write(environ['wsgi.errors'].getvalue())
+
+        return [response]
 
     def free(self):
         self.pool.delete_all_runner()
