@@ -14,7 +14,7 @@ __all__ = ('SampleAppTestCase',)
 class SampleAppTestCase(TestCase):
     def setUp(self):
         self.pool = Pool('apphosting.sandbox.providers.filesystem', Config({
-            'app_dir': os.path.dirname(__file__),
+            'provider_appdir': os.path.dirname(__file__),
         }))
 
     def tearDown(self):

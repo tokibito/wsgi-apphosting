@@ -5,6 +5,7 @@ from multiprocessing import Process, Pipe
 
 from apphosting import const
 from apphosting.config import Config
+from apphosting.sandbox import utils
 from apphosting.sandbox.main import Runner
 
 class RunnerDoesNotExist(Exception):
@@ -24,6 +25,7 @@ class Pool(object):
             self.server_config.update(server_config)
         self.auto_create = auto_create
         self.provider = provider
+        self.provider_module = utils.import_module(self.provider)
         self.max_runners = kwargs.get('max_runners') \
             or self.server_config.get('app_max_runners') \
             or self.default_max_runners
@@ -45,6 +47,12 @@ class Pool(object):
         conn.send({'RUNNER_SIGNAL': const.RUNNER_SIGNAL_INFO})
         # 結果を待ちうける
         return conn.recv()
+
+    def has_application(self, name):
+        """
+        アプリケーションが存在するか
+        """
+        return self.provider_module.has_application(name, self.server_config)
 
     def get_runner(self, name, auto_create=None):
         """

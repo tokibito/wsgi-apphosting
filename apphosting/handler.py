@@ -14,7 +14,7 @@ class NotFoundApplication(object):
         start_response('404 Not Found', [('Content-type', 'text/html')])
         return self.page
 
-class WSGIHandler(object):
+class Handler(object):
     pool_class = Pool
     router_class = DomainRouter
     app_provider = 'apphosting.sandbox.providers.filesystem'
@@ -32,10 +32,14 @@ class WSGIHandler(object):
 
     def __call__(self, environ, start_response):
         app_name = self.get_app_name(environ)
-        if not app_name:
+        if not app_name or not self.pool.has_application(app_name):
             return self.handler404(environ, start_response)
         response = self.pool.process(app_name, environ, start_response)
         return response
+
+    def free(self):
+        self.pool.delete_all_runner()
+        self.pool = None
 
     def get_domain(self):
         return self.config.get('router_domain')
