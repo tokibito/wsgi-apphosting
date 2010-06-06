@@ -14,7 +14,11 @@ setup (
       'Programming Language :: Python',
       'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    packages=["apphosting"],
+    packages=[
+      "apphosting",
+      "apphosting.sandbox",
+      "apphosting.sandbox.providers",
+    ],
     test_suite="tests",
     zip_safe=True,
 )
