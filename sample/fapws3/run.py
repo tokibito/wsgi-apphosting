@@ -18,7 +18,7 @@ handler = Handler(Config({
 def start():
     evwsgi.start("0.0.0.0", "8080")
 
-    evwsgi.set_base_module(fapws_base)
+    evwsgi.set_base_module(custom_base)
 
     evwsgi.wsgi_cb(('', handler))
 
