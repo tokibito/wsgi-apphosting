@@ -1,5 +1,7 @@
 # coding:utf-8
 # WSGIハンドラ
+import logging
+
 from apphosting.pool import Pool
 from apphosting.router import DomainRouter, UserDomainRouter
 
@@ -45,6 +47,15 @@ class Handler(object):
             environ['wsgi.input'] = StringIO(original_wsgi_input.read())
         else:
             environ['wsgi.input'] = StringIO()
+
+        # 残りのpickle化できない項目は潰す
+        import pickle
+        for k, v in environ.iteritems():
+            try:
+                pickle.dumps(v)
+            except:
+                logging.warn('%s: %s does not pickling.' % (k, v))
+                environ[k] = None
 
         app_name = self.get_app_name(environ)
         if not app_name or not self.pool.has_application(app_name):
