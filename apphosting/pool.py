@@ -35,9 +35,13 @@ class Pool(object):
         # environをランナーへ渡す
         conn.send(environ)
         # 結果を待ちうける
-        args = conn.recv()
-        start_response(*args)
-        return conn.recv()
+        status, headers = conn.recv()
+        response = conn.recv()
+        # Content-lengthがない場合には付与
+        if not 'Content-Length' in dict(headers).keys():
+            headers.append(('Content-Length', str(len(response))))
+        start_response(status, headers)
+        return response
 
     def process_info(self, name):
         """

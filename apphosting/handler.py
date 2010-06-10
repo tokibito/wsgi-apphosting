@@ -13,7 +13,7 @@ class NotFoundApplication(object):
 </body></html>"""
 
     def __call__(self, environ, start_response):
-        start_response('404 Not Found', [('Content-type', 'text/html')])
+        start_response('404 Not Found', [('Content-type', 'text/html'), ('Content-Length', len(self.page))])
         return [self.page]
 
 class Handler(object):
@@ -39,12 +39,12 @@ class Handler(object):
         original_wsgi_errors = environ.get('wsgi.errors')
         environ['wsgi.errors'] = StringIO()
         try:
-            content_length = int(environ.get('CONTENT_LENGTH', 0))
+            content_length = int(environ.get('HTTP_CONTENT_LENGTH', 0))
         except (ValueError, TypeError):
             content_length = 0
         original_wsgi_input = environ.get('wsgi.input')
         if original_wsgi_input and content_length > 0:
-            environ['wsgi.input'] = StringIO(original_wsgi_input.read())
+            environ['wsgi.input'] = StringIO(original_wsgi_input.read(content_length))
         else:
             environ['wsgi.input'] = StringIO()
 
