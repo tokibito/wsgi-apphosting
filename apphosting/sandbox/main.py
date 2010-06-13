@@ -23,7 +23,7 @@ class Runner(object):
         self.proc = None
         self.suspended = False
         self.ctime = datetime.now()
-        self.utime = None
+        self.utime = datetime.now()
         self.processed = 0
 
     def __call__(self):

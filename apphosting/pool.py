@@ -76,9 +76,9 @@ class Pool(object):
         """
         新規ランナーを作成
         """
-        # 最大数を超えている場合は一番古いものを終了する
+        # 最大数を超えている場合は最後に実行された時間が昔のものから終了する
         while len(self._runners) >= self.max_runners:
-            old_runner_name = sorted(self._runners.items(), key=lambda v: v[1].ctime)[0][0]
+            old_runner_name = sorted(self._runners.items(), key=lambda v: v[1].utime)[0][0]
             self.delete_runner(old_runner_name)
         pool_conn, runner_conn = Pipe()
         self._runners[name] = self.runner_class(
