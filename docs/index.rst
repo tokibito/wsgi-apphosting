@@ -11,5 +11,6 @@ wsgi-apphosting ドキュメント
 .. toctree::
    :maxdepth: 2
 
+   intro
+   install
    tutorial
-
